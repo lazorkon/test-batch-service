@@ -1,39 +1,28 @@
-/*
- * Returns inerator the will yield requests
- *
- * @example
- * <code>
- * const requestTemplate = {
- *   template: {
- *     verb: 'POST',
- *     url: 'https://jsonplaceholder.typicode.com/users/{userId}',
- *   },
- *   targets: [{
- *     params: { userId: 1 },
- *     // query: { foo: bar },
- *     // body: {},
- *   }, {
- *     params: { userId: 2 },
- *   }, {
- *     params: { userId: 3 },
- *   }],
- *   common: {
- *     body: {
- *       age: 30,
- *     },
- *   },
- * };
- * </code>
+/**
+ * @typedef {Object} RequestInfo
+ * @property {String} verb, e.g: "GET"|"HEAD"|"POST"|"PUT"|"PATCH"|"DELETE"
+ * @property {String} url
+ * @property {*} body
  */
 
+/*
+ * Returns inerator that will yield requests
+ * @yield {RequestInfo}
+ */
 function* getRequestInerator(reqTemplate) {
   const targetCount = reqTemplate.targets.length;
   for (let i = 0; i < targetCount; ++i) {
-    const { verb, url, body, headers } = getRequestData(reqTemplate, i);
-    yield { verb, url, body, headers };
+    const { verb, url, body } = getRequestData(reqTemplate, i);
+    yield { verb, url, body };
   }
 }
 
+/**
+ * Returns merges request
+ * @param {String} reqTpl - request template
+ * @param {Number} targetIdx - index of target in reqTpl.targets
+ * @returns {RequestInfo}
+ */
 function getRequestData(reqTpl, targetIdx = 0) {
   // todo: error handling
   const defaults = { params: {}, query: null, body: null };
@@ -43,8 +32,7 @@ function getRequestData(reqTpl, targetIdx = 0) {
   const targetData = reqTpl.targets[targetIdx];
   const commonData = reqTpl.common;
   const { params, query, body } = { ...defaults, ...commonData, ...targetData };
-  // todo: ability to merge body
-  // todo: support headers, with ability to merge
+  // todo: support headers, with validation and ability to merge
   const url = getUrl(urlTpl, { params, query });
   return {
     verb,
