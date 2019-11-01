@@ -60,13 +60,48 @@ function addReqUrlParams(urlTpl, params = {}) {
   });
 }
 
+// function addReqUrlQuery(urlTpl, query = {}) {
+//   // todo: validate if query is object
+//   const url = new URL(urlTpl);
+//   for (const prop of Object.keys(query || {})) {
+//     url.searchParams.append(prop, query[prop]);
+//   }
+//   return url.toString();
+// }
+
+// node v8 compatible solution
 function addReqUrlQuery(urlTpl, query = {}) {
   // todo: validate if query is object
-  const url = new URL(urlTpl);
+
+  // build query string
+  const parts = [];
   for (const prop of Object.keys(query || {})) {
-    url.searchParams.append(prop, query[prop]);
+    const key = encodeURIComponent(prop);
+    if (Array.isArray(query[prop])) {
+        for (const subVal of query[prop]) {
+            const val = encodeURIComponent(subVal);
+            parts.push(`${key}=${val}`);
+        }
+    } else {
+        const val = encodeURIComponent(query[prop]);
+        parts.push(`${key}=${val}`);
+    }
+
   }
-  return url.toString();
+
+  // append query string to url
+  const queryStr = parts.join('&');
+  let glue = '';
+  if (urlTpl.includes('?')) {
+    glue = urlTpl[urlTpl.length - 1] === '?' ? '' : '&';
+  } else {
+    glue = '?';
+  }
+  const url = urlTpl
+    + glue
+    + queryStr;
+
+  return url;
 }
 
 module.exports = {
